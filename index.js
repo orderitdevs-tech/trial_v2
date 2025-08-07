@@ -1,2 +1,2 @@
 console.log("Hello, World!");
-console.log("This is a simple Node.js applicationdfadfsfsdfdgfhdfgjnde.");
+console.log("This is a simple Node.js applicationdfadfsdfgjnde.");
