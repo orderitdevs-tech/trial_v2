@@ -4,4 +4,5 @@ description: "Automated CI/CD pipeline"
 steps:
   - name: "Build Application"
     image: "node:18-alpine"
-    run: "npm run dev"
+    run: "node index.js"
+
