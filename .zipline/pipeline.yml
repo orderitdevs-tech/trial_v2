@@ -5,4 +5,3 @@ steps:
   - name: "Build Application"
     image: "node:18-alpine"
     run: "npm run dev"
-
