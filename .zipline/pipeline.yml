@@ -5,4 +5,37 @@ steps:
   - name: "Build Application"
     image: "node:18-alpine"
     run: "node index.js"
+    
+  - name: "1. Print System Info"
+    image: "alpine:latest"
+    run: |
+      echo "--- Starting System Info Dump ---"
+      echo "Current Date: $(date)"
+      echo "OS Information:"
+      cat /etc/os-release
+      echo "--- System Info Dump Complete ---"
+
+  - name: "2. Generate Sample Log Output"
+    image: "alpine:latest"
+    run: |
+      echo "Generating 10 log lines..."
+      for i in $(seq 1 10); do
+        echo "Log entry #$i from the sample log generator."
+      done
+      echo "Finished generating sample logs."
+
+  - name: "3. Simulate an Error and Continue"
+    image: "alpine:latest"
+    run: |
+      echo "Attempting to list a file that does not exist to generate an error..."
+      ls /non/existent/file || true
+      echo "This message should appear even after the error, proving the step continued."
+
+  - name: "4. Simulate a Long-Running Task"
+    image: "alpine:latest"
+    run: |
+      echo "Starting a task that will take 3 seconds..."
+      sleep 3
+      echo "Long-running task complete."
+
 
