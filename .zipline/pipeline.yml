@@ -1,25 +1,27 @@
-name: "Pipeline Failure Test"
-description: "A pipeline designed to test the system's ability to handle step failures gracefully."
+name: "Test Pipeline - Failure Scenario"
+description: "A test pipeline designed to fail for testing error handling"
 
 steps:
-  - name: "1. Setup Environment"
+  - name: "1. Setup and Initial Success"
     image: "alpine:latest"
     run: |
-      echo "Setup step starting..."
-      echo "This step will succeed."
-      sleep 2
-      echo "Setup complete."
+      echo "Starting test pipeline..."
+      echo "This step should succeed"
+      ls -la
+      echo "Setup completed successfully"
 
-  - name: "2. Intentionally Failing Step"
+  - name: "2. Intentional Failure Test"
     image: "alpine:latest"
     run: |
-      echo "This step will now fail by trying to run a command that doesn't exist."
+      echo "This step will intentionally fail"
+      echo "Running some commands first..."
+      echo "Current directory: $(pwd)"
+      echo "Now executing a command that does not exist..."
       this-command-does-not-exist
-      echo "This line should never be printed."
+      echo "This line should never be reached"
 
-  - name: "3. Cleanup (Should Not Run)"
+  - name: "3. Should Not Execute"
     image: "alpine:latest"
     run: |
-      echo "!!! This step should never execute because the previous step failed."
-      echo "If you see this message, the failure handling is not working correctly."
-
+      echo "ERROR: This step should never execute because the previous step failed"
+      echo "If you see this message, the error handling is not working"
