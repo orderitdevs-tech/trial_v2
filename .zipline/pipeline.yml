@@ -1,27 +1,27 @@
-name: "Test Pipeline - Failure Scenario"
-description: "A test pipeline designed to fail for testing error handling"
+# .zipline/pipeline.yml
+
+name: "Pipeline Failure Test"
+description: "A pipeline designed to test the system's ability to handle step failures gracefully."
 
 steps:
-  - name: "1. Setup and Initial Success"
+  - name: "1. Setup Environment"
     image: "alpine:latest"
     run: |
-      echo "Starting test pipeline..."
-      echo "This step should succeed"
-      ls -la
-      echo "Setup completed successfully"
+      echo "Setup step starting..."
+      echo "This step will succeed."
+      sleep 2
+      echo "Setup complete."
 
-  - name: "2. Intentional Failure Test"
+  - name: "2. Intentionally Failing Step"
     image: "alpine:latest"
     run: |
-      echo "This step will intentionally fail"
-      echo "Running some commands first..."
-      echo "Current directory: $(pwd)"
-      echo "Now executing a command that does not exist..."
+      echo "This step will now fail by trying to run a command that doesn't exist."
       this-command-does-not-exist
-      echo "This line should never be reached"
+      echo "This line should never be printed."
 
-  - name: "3. Should Not Execute"
+  - name: "3. Cleanup (Should Not Run)"
     image: "alpine:latest"
     run: |
-      echo "ERROR: This step should never execute because the previous step failed"
-      echo "If you see this message, the error handling is not working"
+      echo "!!! This step should never execute because the previous step failed."
+      echo "If you see this message, the failure handling is not working correctly."
+
