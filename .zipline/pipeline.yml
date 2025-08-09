@@ -6,36 +6,68 @@ steps:
     image: "node:18-alpine"
     run: "node index.js"
     
-  - name: "1. Print System Info"
+  - name: "1. Initializing Build Environment"
     image: "alpine:latest"
     run: |
-      echo "--- Starting System Info Dump ---"
-      echo "Current Date: $(date)"
-      echo "OS Information:"
-      cat /etc/os-release
-      echo "--- System Info Dump Complete ---"
+      echo "Build started at: $(date)"
+      echo "----------------------------------------"
+      echo "Fetching system information..."
+      uname -a
+      echo "Checking disk space..."
+      df -h
+      echo "Environment setup complete."
+      echo "----------------------------------------"
 
-  - name: "2. Generate Sample Log Output"
+  - name: "2. Simulating Long Code Compilation (60 seconds)"
     image: "alpine:latest"
     run: |
-      echo "Generating 10 log lines..."
-      for i in $(seq 1 10); do
-        echo "Log entry #$i from the sample log generator."
+      echo "Starting simulated compilation process..."
+      for i in $(seq 1 12); do
+        echo "Compiling module $i of 12..."
+        sleep 5
+        echo "Module $i compiled successfully."
       done
-      echo "Finished generating sample logs."
+      echo "✅ All modules compiled. Total duration: 60 seconds."
 
-  - name: "3. Simulate an Error and Continue"
+  - name: "3. Running Unit & Integration Tests"
     image: "alpine:latest"
     run: |
-      echo "Attempting to list a file that does not exist to generate an error..."
-      ls /non/existent/file || true
-      echo "This message should appear even after the error, proving the step continued."
+      echo "--- Running Test Suite ---"
+      sleep 2
+      echo "[PASS] ✅ User authentication test"
+      sleep 2
+      echo "[PASS] ✅ Database connection test"
+      sleep 2
+      echo "[WARN] ⚠️ Email service test skipped (API key not found)"
+      sleep 2
+      echo "[PASS] ✅ API endpoint validation test"
+      echo "--- Test Suite Complete ---"
 
-  - name: "4. Simulate a Long-Running Task"
+  - name: "4. Generating an Error Message"
     image: "alpine:latest"
     run: |
-      echo "Starting a task that will take 3 seconds..."
-      sleep 3
-      echo "Long-running task complete."
+      echo "This step will now generate a non-fatal error message to stderr."
+      echo "This is a test error message" >&2
+      echo "The step will still succeed, but the error should be visible in the logs."
+
+  - name: "5. Packaging Application for Deployment (30 seconds)"
+    image: "alpine:latest"
+    run: |
+      echo "Starting final packaging process..."
+      echo "Compressing assets..."
+      sleep 10
+      echo "Creating Docker image layer..."
+      sleep 10
+      echo "Pushing to artifact registry..."
+      sleep 10
+      echo "🚀 Application packaged and ready for deployment."
+
+  - name: "6. Finalizing and Cleanup"
+    image: "alpine:latest"
+    run: |
+      echo "----------------------------------------"
+      echo "Pipeline finished at: $(date)"
+      echo "Build successful. All stages completed."
+      echo "----------------------------------------"
 
 
