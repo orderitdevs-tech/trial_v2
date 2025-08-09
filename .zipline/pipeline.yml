@@ -1,11 +1,7 @@
-name: "Build and Test Pipeline"
-description: "Automated CI/CD pipeline"
+name: "Comprehensive Live Log Test"
+description: "A long-running pipeline with multiple stages to test the stability and real-time capabilities of the log streaming system."
 
 steps:
-  - name: "Build Application"
-    image: "node:18-alpine"
-    run: "node index.js"
-    
   - name: "1. Initializing Build Environment"
     image: "alpine:latest"
     run: |
@@ -18,16 +14,16 @@ steps:
       echo "Environment setup complete."
       echo "----------------------------------------"
 
-  - name: "2. Simulating Long Code Compilation (60 seconds)"
+  - name: "2. Simulating Long Code Compilation (120 seconds)"
     image: "alpine:latest"
     run: |
-      echo "Starting simulated compilation process..."
+      echo "Starting simulated compilation process (extended)..."
       for i in $(seq 1 12); do
         echo "Compiling module $i of 12..."
-        sleep 5
+        sleep 10
         echo "Module $i compiled successfully."
       done
-      echo "✅ All modules compiled. Total duration: 60 seconds."
+      echo "✅ All modules compiled. Total duration: 120 seconds."
 
   - name: "3. Running Unit & Integration Tests"
     image: "alpine:latest"
@@ -50,16 +46,16 @@ steps:
       echo "This is a test error message" >&2
       echo "The step will still succeed, but the error should be visible in the logs."
 
-  - name: "5. Packaging Application for Deployment (30 seconds)"
+  - name: "5. Packaging Application for Deployment (60 seconds)"
     image: "alpine:latest"
     run: |
-      echo "Starting final packaging process..."
+      echo "Starting final packaging process (extended)..."
       echo "Compressing assets..."
-      sleep 10
+      sleep 20
       echo "Creating Docker image layer..."
-      sleep 10
+      sleep 20
       echo "Pushing to artifact registry..."
-      sleep 10
+      sleep 20
       echo "🚀 Application packaged and ready for deployment."
 
   - name: "6. Finalizing and Cleanup"
@@ -69,5 +65,3 @@ steps:
       echo "Pipeline finished at: $(date)"
       echo "Build successful. All stages completed."
       echo "----------------------------------------"
-
-
