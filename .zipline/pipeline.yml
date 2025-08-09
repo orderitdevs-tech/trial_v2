@@ -1,67 +1,25 @@
-name: "Comprehensive Live Log Test"
-description: "A long-running pipeline with multiple stages to test the stability and real-time capabilities of the log streaming system."
+name: "Pipeline Failure Test"
+description: "A pipeline designed to test the system's ability to handle step failures gracefully."
 
 steps:
-  - name: "1. Initializing Build Environment"
+  - name: "1. Setup Environment"
     image: "alpine:latest"
     run: |
-      echo "Build started at: $(date)"
-      echo "----------------------------------------"
-      echo "Fetching system information..."
-      uname -a
-      echo "Checking disk space..."
-      df -h
-      echo "Environment setup complete."
-      echo "----------------------------------------"
-
-  - name: "2. Simulating Long Code Compilation (120 seconds)"
-    image: "alpine:latest"
-    run: |
-      echo "Starting simulated compilation process (extended)..."
-      for i in $(seq 1 12); do
-        echo "Compiling module $i of 12..."
-        sleep 10
-        echo "Module $i compiled successfully."
-      done
-      echo "✅ All modules compiled. Total duration: 120 seconds."
-
-  - name: "3. Running Unit & Integration Tests"
-    image: "alpine:latest"
-    run: |
-      echo "--- Running Test Suite ---"
+      echo "Setup step starting..."
+      echo "This step will succeed."
       sleep 2
-      echo "[PASS] ✅ User authentication test"
-      sleep 2
-      echo "[PASS] ✅ Database connection test"
-      sleep 2
-      echo "[WARN] ⚠️ Email service test skipped (API key not found)"
-      sleep 2
-      echo "[PASS] ✅ API endpoint validation test"
-      echo "--- Test Suite Complete ---"
+      echo "Setup complete."
 
-  - name: "4. Generating an Error Message"
+  - name: "2. Intentionally Failing Step"
     image: "alpine:latest"
     run: |
-      echo "This step will now generate a non-fatal error message to stderr."
-      echo "This is a test error message" >&2
-      echo "The step will still succeed, but the error should be visible in the logs."
+      echo "This step will now fail by trying to run a command that doesn't exist."
+      this-command-does-not-exist
+      echo "This line should never be printed."
 
-  - name: "5. Packaging Application for Deployment (60 seconds)"
+  - name: "3. Cleanup (Should Not Run)"
     image: "alpine:latest"
     run: |
-      echo "Starting final packaging process (extended)..."
-      echo "Compressing assets..."
-      sleep 20
-      echo "Creating Docker image layer..."
-      sleep 20
-      echo "Pushing to artifact registry..."
-      sleep 20
-      echo "🚀 Application packaged and ready for deployment."
+      echo "!!! This step should never execute because the previous step failed."
+      echo "If you see this message, the failure handling is not working correctly."
 
-  - name: "6. Finalizing and Cleanup"
-    image: "alpine:latest"
-    run: |
-      echo "----------------------------------------"
-      echo "Pipeline finished at: $(date)"
-      echo "Build successful. All stages completed."
-      echo "----------------------------------------"
