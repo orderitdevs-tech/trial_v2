@@ -1,24 +1,257 @@
-name: "Multi-Stage Pipeline"
+name: "Full Stack Application CI/CD Pipeline"
+description: "A comprehensive pipeline demonstrating DAG orchestration with parallel execution and complex dependencies"
+
 steps:
-  - name: "Run Unit Tests"
-    image: "node:18"
-    run: "npm test"
+  # Phase 1: Initial parallel checks (no dependencies)
+  - name: "Code Quality Check"
+    image: "alpine:latest"
+    run: |
+      echo "🔍 Running code quality analysis..."
+      echo "Checking code formatting..."
+      sleep 2
+      echo "Analyzing code complexity..."
+      sleep 1
+      echo "✅ Code quality check passed!"
 
-  - name: "Lint Code"
-    image: "node:18"
-    run: "npm run lint"
+  - name: "Security Vulnerability Scan"
+    image: "alpine:latest"
+    run: |
+      echo "🛡️ Running security vulnerability scan..."
+      echo "Scanning dependencies for known vulnerabilities..."
+      sleep 3
+      echo "Checking for sensitive data in code..."
+      sleep 2
+      echo "✅ Security scan completed - no vulnerabilities found!"
 
-  - name: "Build Application"
-    image: "node:18"
-    # This step will only run after both tests and linting succeed
+  - name: "License Compliance Check"
+    image: "alpine:latest"
+    run: |
+      echo "📋 Checking license compliance..."
+      echo "Validating dependency licenses..."
+      sleep 2
+      echo "Generating license report..."
+      sleep 1
+      echo "✅ All licenses are compliant!"
+
+  # Phase 2: Testing phase (runs in parallel after Phase 1)
+  - name: "Unit Tests"
+    image: "alpine:latest"
     needs:
-      - "Run Unit Tests"
-      - "Lint Code"
-    run: "npm run build"
+      - "Code Quality Check"
+    run: |
+      echo "🧪 Running unit tests..."
+      echo "Testing authentication module..."
+      sleep 3
+      echo "Testing data processing module..."
+      sleep 2
+      echo "Testing API endpoints..."
+      sleep 2
+      echo "✅ All unit tests passed! (127/127)"
 
+  - name: "Integration Tests"
+    image: "alpine:latest"
+    needs:
+      - "Code Quality Check"
+    run: |
+      echo "🔗 Running integration tests..."
+      echo "Testing database connections..."
+      sleep 4
+      echo "Testing external API integrations..."
+      sleep 3
+      echo "Testing service-to-service communication..."
+      sleep 2
+      echo "✅ All integration tests passed! (45/45)"
+
+  - name: "End-to-End Tests"
+    image: "alpine:latest"
+    needs:
+      - "Code Quality Check"
+      - "Security Vulnerability Scan"
+    run: |
+      echo "🎭 Running end-to-end tests..."
+      echo "Starting test browser..."
+      sleep 2
+      echo "Testing user registration flow..."
+      sleep 4
+      echo "Testing user login flow..."
+      sleep 3
+      echo "Testing core application features..."
+      sleep 5
+      echo "✅ All E2E tests passed! (23/23)"
+
+  # Phase 3: Build phase (depends on tests passing)
+  - name: "Build Frontend"
+    image: "alpine:latest"
+    needs:
+      - "Unit Tests"
+      - "Integration Tests"
+    run: |
+      echo "🏗️ Building frontend application..."
+      echo "Installing dependencies..."
+      sleep 3
+      echo "Compiling TypeScript..."
+      sleep 4
+      echo "Bundling assets..."
+      sleep 3
+      echo "Optimizing build..."
+      sleep 2
+      echo "✅ Frontend build completed!"
+
+  - name: "Build Backend"
+    image: "alpine:latest"
+    needs:
+      - "Unit Tests"
+      - "Integration Tests"
+      - "License Compliance Check"
+    run: |
+      echo "⚙️ Building backend application..."
+      echo "Compiling source code..."
+      sleep 4
+      echo "Running build optimizations..."
+      sleep 3
+      echo "Generating API documentation..."
+      sleep 2
+      echo "✅ Backend build completed!"
+
+  # Phase 4: Containerization (depends on builds)
+  - name: "Build Docker Images"
+    image: "alpine:latest"
+    needs:
+      - "Build Frontend"
+      - "Build Backend"
+      - "End-to-End Tests"
+    run: |
+      echo "🐳 Building Docker images..."
+      echo "Building frontend image..."
+      sleep 4
+      echo "Building backend image..."
+      sleep 5
+      echo "Building nginx proxy image..."
+      sleep 3
+      echo "Optimizing image layers..."
+      sleep 2
+      echo "✅ All Docker images built successfully!"
+
+  # Phase 5: Infrastructure tests
+  - name: "Infrastructure Tests"
+    image: "alpine:latest"
+    needs:
+      - "Build Docker Images"
+    run: |
+      echo "🏗️ Running infrastructure tests..."
+      echo "Testing container startup..."
+      sleep 3
+      echo "Testing service discovery..."
+      sleep 2
+      echo "Testing load balancer configuration..."
+      sleep 3
+      echo "✅ Infrastructure tests passed!"
+
+  # Phase 6: Staging deployment
   - name: "Deploy to Staging"
-    image: "aws-cli"
-    # This step depends on the build finishing
+    image: "alpine:latest"
     needs:
-      - "Build Application"
-    run: "aws s3 sync ./dist s3://staging-bucket"
+      - "Infrastructure Tests"
+    run: |
+      echo "🚀 Deploying to staging environment..."
+      echo "Updating staging cluster..."
+      sleep 4
+      echo "Running database migrations..."
+      sleep 3
+      echo "Updating service configurations..."
+      sleep 2
+      echo "Running post-deployment health checks..."
+      sleep 3
+      echo "✅ Successfully deployed to staging!"
+
+  # Phase 7: Staging validation
+  - name: "Staging Smoke Tests"
+    image: "alpine:latest"
+    needs:
+      - "Deploy to Staging"
+    run: |
+      echo "💨 Running staging smoke tests..."
+      echo "Testing critical user paths..."
+      sleep 4
+      echo "Validating API endpoints..."
+      sleep 2
+      echo "Checking system performance..."
+      sleep 3
+      echo "✅ Staging environment is healthy!"
+
+  - name: "Performance Tests"
+    image: "alpine:latest"
+    needs:
+      - "Deploy to Staging"
+    run: |
+      echo "⚡ Running performance tests..."
+      echo "Load testing API endpoints..."
+      sleep 5
+      echo "Testing database performance..."
+      sleep 4
+      echo "Measuring response times..."
+      sleep 3
+      echo "✅ Performance tests passed - all metrics within limits!"
+
+  # Phase 8: Production deployment (runs in parallel after staging validation)
+  - name: "Deploy to Production"
+    image: "alpine:latest"
+    needs:
+      - "Staging Smoke Tests"
+      - "Performance Tests"
+    run: |
+      echo "🌟 Deploying to production environment..."
+      echo "Creating production deployment..."
+      sleep 5
+      echo "Running zero-downtime deployment..."
+      sleep 4
+      echo "Updating DNS records..."
+      sleep 2
+      echo "Running post-deployment verification..."
+      sleep 3
+      echo "✅ Successfully deployed to production!"
+
+  - name: "Backup and Archive"
+    image: "alpine:latest"
+    needs:
+      - "Staging Smoke Tests"
+      - "Performance Tests"
+    run: |
+      echo "💾 Creating backups and archives..."
+      echo "Backing up previous version..."
+      sleep 3
+      echo "Archiving build artifacts..."
+      sleep 4
+      echo "Creating deployment snapshot..."
+      sleep 2
+      echo "✅ Backup and archive completed!"
+
+  # Phase 9: Final validation
+  - name: "Production Health Check"
+    image: "alpine:latest"
+    needs:
+      - "Deploy to Production"
+    run: |
+      echo "🏥 Running production health checks..."
+      echo "Verifying all services are running..."
+      sleep 3
+      echo "Testing critical application flows..."
+      sleep 4
+      echo "Monitoring system metrics..."
+      sleep 2
+      echo "✅ Production deployment is healthy!"
+
+  - name: "Notification and Reporting"
+    image: "alpine:latest"
+    needs:
+      - "Production Health Check"
+      - "Backup and Archive"
+    run: |
+      echo "📢 Sending deployment notifications..."
+      echo "Notifying development team..."
+      sleep 2
+      echo "Updating deployment dashboard..."
+      sleep 1
+      echo "Generating deployment report..."
+      sleep 2
+      echo "✅ Deployment completed successfully!"
