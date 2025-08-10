@@ -1,67 +1,50 @@
-name: "DAG Orchestration Test"
-description: "A pipeline with parallel steps and dependencies to test the orchestrator."
-
+name: "Parallel DAG Test"
+description: "Test true parallel execution of independent steps"
 steps:
-  - name: "A - Run Backend Unit Tests"
+  # Three independent steps that should run in parallel
+  - name: "step-a"
     image: "alpine:latest"
     run: |
-      echo "Starting backend unit tests..."
-      sleep 10
-      echo "Backend unit tests passed."
-
-  - name: "B - Run Frontend Unit Tests"
-    image: "alpine:latest"
-    run: |
-      echo "Starting frontend unit tests..."
-      sleep 10
-      echo "Frontend unit tests passed."
-
-  - name: "C - Lint Backend Code"
-    image: "alpine:latest"
-    run: |
-      echo "Linting backend code..."
+      echo "Step A starting at $(date)"
       sleep 5
-      echo "Backend linting complete."
+      echo "Step A completed at $(date)"
 
-  - name: "D - Build Application"
-    # This is the "fan-in" step. It must wait for all three initial steps.
-    needs:
-      - "A - Run Backend Unit Tests"
-      - "B - Run Frontend Unit Tests"
-      - "C - Lint Backend Code"
+  - name: "step-b"
     image: "alpine:latest"
     run: |
-      echo "All initial tests and linting passed. Starting application build..."
-      sleep 15
-      echo "Application build successful."
+      echo "Step B starting at $(date)"
+      sleep 5
+      echo "Step B completed at $(date)"
 
-  - name: "E - Deploy to Staging"
-    # This step depends only on the build.
-    needs:
-      - "D - Build Application"
+  - name: "step-c"
     image: "alpine:latest"
     run: |
-      echo "Deploying application to staging environment..."
-      sleep 10
-      echo "Deployment to staging complete."
+      echo "Step C starting at $(date)"
+      sleep 5
+      echo "Step C completed at $(date)"
 
-  - name: "F - Run End-to-End Tests"
-    # This step also depends only on the build and can run in parallel with staging deployment.
-    needs:
-      - "D - Build Application"
+  # Step that depends on all three above (should start only after A, B, C complete)
+  - name: "step-d"
     image: "alpine:latest"
+    needs: ["step-a", "step-b", "step-c"]
     run: |
-      echo "Starting end-to-end tests against the built application..."
-      sleep 20
-      echo "End-to-end tests passed."
+      echo "Step D starting at $(date) - depends on A, B, C"
+      sleep 3
+      echo "Step D completed at $(date)"
 
-  - name: "G - Notify Team"
-    # This is the final step. It must wait for both deployment and E2E tests.
-    needs:
-      - "E - Deploy to Staging"
-      - "F - Run End-to-End Tests"
+  # Two steps that depend only on D (should run in parallel)
+  - name: "step-e"
     image: "alpine:latest"
+    needs: ["step-d"]
     run: |
-      echo "Deployment and E2E tests successful. Sending notification to team."
-      sleep 2
-      echo "Notification sent."
+      echo "Step E starting at $(date) - depends on D"
+      sleep 4
+      echo "Step E completed at $(date)"
+
+  - name: "step-f"
+    image: "alpine:latest"
+    needs: ["step-d"]
+    run: |
+      echo "Step F starting at $(date) - depends on D"
+      sleep 4
+      echo "Step F completed at $(date)"
