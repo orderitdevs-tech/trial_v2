@@ -1,27 +1,24 @@
-# .zipline/pipeline.yml
-
-name: "Pipeline Failure Test"
-description: "A pipeline designed to test the system's ability to handle step failures gracefully."
-
+name: "Multi-Stage Pipeline"
 steps:
-  - name: "1. Setup Environment"
-    image: "alpine:latest"
-    run: |
-      echo "Setup step starting..."
-      echo "This step will succeed."
-      sleep 2
-      echo "Setup complete."
+  - name: "Run Unit Tests"
+    image: "node:18"
+    run: "npm test"
 
-  - name: "2. Intentionally Failing Step"
-    image: "alpine:latest"
-    run: |
-      echo "This step will now fail by trying to run a command that doesn't exist."
-      this-command-does-not-exist
-      echo "This line should never be printed."
+  - name: "Lint Code"
+    image: "node:18"
+    run: "npm run lint"
 
-  - name: "3. Cleanup (Should Not Run)"
-    image: "alpine:latest"
-    run: |
-      echo "!!! This step should never execute because the previous step failed."
-      echo "If you see this message, the failure handling is not working correctly."
+  - name: "Build Application"
+    image: "node:18"
+    # This step will only run after both tests and linting succeed
+    needs:
+      - "Run Unit Tests"
+      - "Lint Code"
+    run: "npm run build"
 
+  - name: "Deploy to Staging"
+    image: "aws-cli"
+    # This step depends on the build finishing
+    needs:
+      - "Build Application"
+    run: "aws s3 sync ./dist s3://staging-bucket"
