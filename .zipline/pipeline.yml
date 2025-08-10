@@ -1,5 +1,7 @@
-name: "DAG Orchestration Test"
-description: "A pipeline with parallel steps and dependencies to test the orchestrator."
+# .zipline/pipeline.yml
+
+name: "DAG Error Handling Test"
+description: "A pipeline to test if the orchestrator correctly handles a failed step and its dependents."
 
 steps:
   - name: "A - Run Backend Unit Tests"
@@ -7,61 +9,38 @@ steps:
     run: |
       echo "Starting backend unit tests..."
       sleep 10
-      echo "Backend unit tests passed."
+      echo "Backend unit tests passed. This step should succeed."
 
-  - name: "B - Run Frontend Unit Tests"
+  - name: "B - Run Frontend Unit Tests (Will Fail)"
     image: "alpine:latest"
     run: |
       echo "Starting frontend unit tests..."
-      sleep 10
-      echo "Frontend unit tests passed."
+      sleep 5
+      echo "This step will now fail intentionally."
+      exit 1
 
-  - name: "C - Lint Backend Code"
+  - name: "C - Lint Code"
     image: "alpine:latest"
     run: |
-      echo "Linting backend code..."
-      sleep 5
-      echo "Backend linting complete."
+      echo "Linting code..."
+      sleep 8
+      echo "Linting complete. This independent step should succeed."
 
-  - name: "D - Build Application"
-    # This is the "fan-in" step. It must wait for all three initial steps.
+  - name: "D - Build Application (Should Not Run)"
+    # This step depends on the failed step "B"
     needs:
       - "A - Run Backend Unit Tests"
-      - "B - Run Frontend Unit Tests"
-      - "C - Lint Backend Code"
+      - "B - Run Frontend Unit Tests (Will Fail)"
+      - "C - Lint Code"
     image: "alpine:latest"
     run: |
-      echo "All initial tests and linting passed. Starting application build..."
-      sleep 15
-      echo "Application build successful."
+      echo "!!! ERROR: This step should never execute because step B failed."
 
-  - name: "E - Deploy to Staging"
-    # This step depends only on the build.
+  - name: "E - Deploy to Staging (Should Not Run)"
+    # This step depends on a step that will not run
     needs:
-      - "D - Build Application"
+      - "D - Build Application (Should Not Run)"
     image: "alpine:latest"
     run: |
-      echo "Deploying application to staging environment..."
-      sleep 10
-      echo "Deployment to staging complete."
+      echo "!!! ERROR: This step should never execute."
 
-  - name: "F - Run End-to-End Tests"
-    # This step also depends only on the build and can run in parallel with staging deployment.
-    needs:
-      - "D - Build Application"
-    image: "alpine:latest"
-    run: |
-      echo "Starting end-to-end tests against the built application..."
-      sleep 20
-      echo "End-to-end tests passed."
-
-  - name: "G - Notify Team"
-    # This is the final step. It must wait for both deployment and E2E tests.
-    needs:
-      - "E - Deploy to Staging"
-      - "F - Run End-to-End Tests"
-    image: "alpine:latest"
-    run: |
-      echo "Deployment and E2E tests successful. Sending notification to team."
-      sleep 2
-      echo "Notification sent."
