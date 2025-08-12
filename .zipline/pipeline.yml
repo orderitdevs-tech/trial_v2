@@ -1,58 +1,39 @@
 # .zipline/pipeline.yml
 
-name: "Node.js Build and Test with Artifacts"
-description: "A pipeline that runs tests, builds a Node.js application, and saves multiple artifacts."
+name: "Simple Build with Artifacts"
+description: "A simple pipeline that creates a build directory and saves it as an artifact."
 
 steps:
-  - name: "A - Install Dependencies"
-    image: "node:18-alpine"
+  - name: "A - Create Log Artifact"
+    image: "alpine:latest"
     run: |
-      echo "Installing npm dependencies..."
-      # Create fake package files for demonstration
-      echo '{ "name": "my-app", "scripts": { "test": "echo \\"Test coverage report generated\\"", "build": "echo \\"Build successful\\"" } }' > package.json
-      echo '{ "lockfileVersion": 2 }' > package-lock.json
-      npm ci
-      echo "Dependencies installed."
-
-  - name: "B - Run Tests and Generate Coverage"
-    needs:
-      - "A - Install Dependencies"
-    image: "node:18-alpine"
-    run: |
-      echo "Running tests and generating coverage report..."
-      # Simulate test run creating a coverage directory
-      mkdir -p ./coverage
-      echo "<h1>Test Coverage Report</h1>" > ./coverage/index.html
-      npm test
+      echo "Creating a log file for this run..."
+      echo "Pipeline started at $(date)" > run.log
+      echo "Log file created."
     artifacts:
-      name: "coverage-report"
+      name: "run-log"
       paths:
-        - "./coverage"
+        - "./run.log"
 
-  - name: "C - Build Application"
-    needs:
-      - "A - Install Dependencies"
-    image: "node:18-alpine"
+  - name: "B - Create Build Directory"
+    image: "alpine:latest"
     run: |
-      echo "Building the application..."
-      # Simulate a build process creating a dist directory
-      mkdir -p ./dist
-      echo "console.log('Hello from the built app!');" > ./dist/app.js
-      npm run build
+      echo "Creating build directory from index.js..."
+      mkdir ./dist
+      cp index.js ./dist/app.js
+      echo "Build directory created."
     artifacts:
       name: "application-build"
       paths:
         - "./dist"
 
-  - name: "D - Package for Deployment"
+  - name: "C - Package for Deployment"
     needs:
-      - "B - Run Tests and Generate Coverage"
-      - "C - Build Application"
+      - "A - Create Log Artifact"
+      - "B - Create Build Directory"
     image: "alpine:latest"
     run: |
       echo "Packaging final artifacts for deployment..."
-      # In a real scenario, this step would download and use the artifacts
-      # from steps B and C.
       sleep 5
       echo "Packaging complete."
 
