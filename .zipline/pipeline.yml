@@ -1,93 +1,12 @@
-# .zipline/pipeline.yml
-
-name: "Complex Software Delivery Pipeline (Failure Test)"
-description: "A complex DAG with a failing step to test error handling and dependency propagation."
-
+name: "Simple Artifact Test"
 steps:
-  # --- Stage 1: Initial Setup (Run in Parallel) ---
-  - name: "A - Setup Environment"
+  - name: "Create Build Artifact"
     image: "alpine:latest"
     run: |
-      echo "Setting up build environment and installing dependencies..."
-      sleep 10
-      echo "Environment ready."
-
-  - name: "B - Lint Codebase"
-    image: "alpine:latest"
-    run: |
-      echo "Running linters on the entire codebase..."
-      sleep 15
-      echo "Linting passed."
-
-  - name: "C - Run Security Scan"
-    image: "alpine:latest"
-    run: |
-      echo "Scanning for security vulnerabilities..."
-      sleep 20
-      echo "No critical vulnerabilities found."
-
-  # --- Stage 2: Build (Waits for all setup tasks) ---
-  - name: "D - Build Application"
-    needs:
-      - "A - Setup Environment"
-      - "B - Lint Codebase"
-      - "C - Run Security Scan"
-    image: "alpine:latest"
-    run: |
-      echo "All checks passed. Starting application build..."
-      sleep 25
-      echo "Application built successfully."
-
-  # --- Stage 3: Parallel Testing (Waits for build) ---
-  - name: "E - Run Backend Integration Tests (Will Fail)"
-    needs:
-      - "D - Build Application"
-    image: "alpine:latest"
-    run: |
-      echo "Running backend-specific integration tests..."
-      sleep 10
-      echo "A critical backend test failed. Exiting."
-      exit 1
-
-  - name: "F - Run Frontend Integration Tests"
-    needs:
-      - "D - Build Application"
-    image: "alpine:latest"
-    run: |
-      echo "Running frontend-specific integration tests..."
-      echo "This step will complete, but the overall pipeline should still fail."
-      sleep 30
-      echo "Frontend tests passed."
-
-  # --- Stage 4: Package (Should Not Run) ---
-  - name: "G - Package Artifacts"
-    needs:
-      - "E - Run Backend Integration Tests (Will Fail)"
-      - "F - Run Frontend Integration Tests"
-    image: "alpine:latest"
-    run: |
-      echo "!!! ERROR: This step should never execute because a dependency failed."
-
-  # --- Stage 5: Staging Deployment (Should Not Run) ---
-  - name: "H - Deploy to Staging"
-    needs:
-      - "G - Package Artifacts"
-    image: "alpine:latest"
-    run: |
-      echo "!!! ERROR: This step should never execute."
-
-  # --- Stage 6: Staging Verification (Should Not Run) ---
-  - name: "I - Run Staging Smoke Tests"
-    needs:
-      - "H - Deploy to Staging"
-    image: "alpine:latest"
-    run: |
-      echo "!!! ERROR: This step should never execute."
-
-  # --- Stage 7: Production Deployment (Should Not Run) ---
-  - name: "J - Deploy to Production"
-    needs:
-      - "I - Run Staging Smoke Tests"
-    image: "alpine:latest"
-    run: |
-      echo "!!! ERROR: This step should never execute."
+      echo "Creating a build directory and a sample file..."
+      mkdir ./build
+      echo "This is a test artifact." > ./build/hello.txt
+      echo "Artifact created."
+    artifacts:
+      - name: "output-files"
+        path: "./build"
