@@ -1,67 +1,56 @@
-# Example Pipeline Configuration
-# Place this file at .zipline/pipeline.yml in your repository
+# .zipline/pipeline.yml
 
-name: "Build and Test Pipeline"
-description: "Automated build, test, and deployment pipeline"
+name: "Node.js Build and Test with Artifacts"
+description: "A pipeline that runs tests, builds a Node.js application, and saves multiple artifacts."
 
 steps:
-  - name: "Install Dependencies"
+  - name: "A - Install Dependencies"
     image: "node:18-alpine"
-    run: "npm install"
+    run: |
+      echo "Installing npm dependencies..."
+      # Create fake package files for demonstration
+      echo '{ "name": "my-app", "scripts": { "test": "echo \\"Test coverage report generated\\"", "build": "echo \\"Build successful\\"" } }' > package.json
+      echo '{ "lockfileVersion": 2 }' > package-lock.json
+      npm ci
+      echo "Dependencies installed."
 
-  - name: "Run Tests"
+  - name: "B - Run Tests and Generate Coverage"
+    needs:
+      - "A - Install Dependencies"
     image: "node:18-alpine"
-    run: "npm test"
+    run: |
+      echo "Running tests and generating coverage report..."
+      # Simulate test run creating a coverage directory
+      mkdir -p ./coverage
+      echo "<h1>Test Coverage Report</h1>" > ./coverage/index.html
+      npm test
     artifacts:
-      paths:
-        - "coverage/"
-        - "test-results.xml"
-      name: "test-reports"
+      - name: "coverage-report"
+        path: "./coverage"
 
-  - name: "Build Application"
+  - name: "C - Build Application"
+    needs:
+      - "A - Install Dependencies"
     image: "node:18-alpine"
-    run: "npm run build"
+    run: |
+      echo "Building the application..."
+      # Simulate a build process creating a dist directory
+      mkdir -p ./dist
+      echo "console.log('Hello from the built app!');" > ./dist/app.js
+      npm run build
     artifacts:
-      paths:
-        - "dist/"
-        - "build/"
-      name: "build-output"
+      - name: "application-build"
+        path: "./dist"
 
-  - name: "Security Scan"
-    image: "node:18-alpine"
-    run: "npm audit --audit-level=moderate"
-    artifacts:
-      paths:
-        - "security-report.json"
-      name: "security-scan"
+  - name: "D - Package for Deployment"
+    needs:
+      - "B - Run Tests and Generate Coverage"
+      - "C - Build Application"
+    image: "alpine:latest"
+    run: |
+      echo "Packaging final artifacts for deployment..."
+      # In a real scenario, this step would download and use the artifacts
+      # from steps B and C.
+      sleep 5
+      echo "Packaging complete."
 
-  - name: "Lint Code"
-    image: "node:18-alpine"
-    run: "npm run lint"
-    artifacts:
-      paths:
-        - "lint-results.xml"
-      name: "lint-report"
-# Alternative example for Python projects:
-# steps:
-#   - name: "Install Dependencies"
-#     image: "python:3.11-slim"
-#     run: "pip install -r requirements.txt"
-#
-#   - name: "Run Tests"
-#     image: "python:3.11-slim"
-#     run: "pytest"
-#
-#   - name: "Code Quality Check"
-#     image: "python:3.11-slim"
-#     run: "flake8 ."
-
-# For Docker-based projects:
-# steps:
-#   - name: "Build Docker Image"
-#     image: "docker:latest"
-#     run: "docker build -t myapp:latest ."
-#
-#   - name: "Run Container Tests"
-#     image: "docker:latest"
-#     run: "docker run --rm myapp:latest npm test"
