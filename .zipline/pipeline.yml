@@ -1,56 +1,72 @@
-# .zipline/pipeline.yml
-
-name: "Node.js Build and Test with Artifacts"
-description: "A pipeline that runs tests, builds a Node.js application, and saves multiple artifacts."
+name: "DAG Pipeline with Artifacts"
+description: "Example DAG pipeline that demonstrates artifact saving"
 
 steps:
-  - name: "A - Install Dependencies"
-    image: "node:18-alpine"
-    run: |
-      echo "Installing npm dependencies..."
-      # Create fake package files for demonstration
-      echo '{ "name": "my-app", "scripts": { "test": "echo \\"Test coverage report generated\\"", "build": "echo \\"Build successful\\"" } }' > package.json
-      echo '{ "lockfileVersion": 2 }' > package-lock.json
-      npm ci
-      echo "Dependencies installed."
-
-  - name: "B - Run Tests and Generate Coverage"
-    needs:
-      - "A - Install Dependencies"
-    image: "node:18-alpine"
-    run: |
-      echo "Running tests and generating coverage report..."
-      # Simulate test run creating a coverage directory
-      mkdir -p ./coverage
-      echo "<h1>Test Coverage Report</h1>" > ./coverage/index.html
-      npm test
-    artifacts:
-      - name: "coverage-report"
-        path: "./coverage"
-
-  - name: "C - Build Application"
-    needs:
-      - "A - Install Dependencies"
-    image: "node:18-alpine"
-    run: |
-      echo "Building the application..."
-      # Simulate a build process creating a dist directory
-      mkdir -p ./dist
-      echo "console.log('Hello from the built app!');" > ./dist/app.js
-      npm run build
-    artifacts:
-      - name: "application-build"
-        path: "./dist"
-
-  - name: "D - Package for Deployment"
-    needs:
-      - "B - Run Tests and Generate Coverage"
-      - "C - Build Application"
+  - name: "setup"
     image: "alpine:latest"
     run: |
-      echo "Packaging final artifacts for deployment..."
-      # In a real scenario, this step would download and use the artifacts
-      # from steps B and C.
-      sleep 5
-      echo "Packaging complete."
+      echo "Setting up environment..." > setup.log
+      mkdir -p output/reports
+      echo "Setup complete" >> setup.log
 
+  - name: "build"
+    image: "alpine:latest"
+    needs: ["setup"]
+    run: |
+      echo "Building application..." > build.log
+      echo "Build artifacts created" > output/app.tar.gz
+      echo "Build complete" >> build.log
+    artifacts:
+      paths:
+        - "output/"
+        - "build.log"
+      name: "build-artifacts"
+
+  - name: "test-unit"
+    image: "alpine:latest"
+    needs: ["build"]
+    run: |
+      echo "Running unit tests..." > unit-test.log
+      echo "Test results" > output/reports/unit-tests.xml
+      echo "Coverage data" > output/reports/coverage.xml
+      echo "Unit tests complete" >> unit-test.log
+    artifacts:
+      paths:
+        - "output/reports/"
+        - "unit-test.log"
+      name: "unit-test-results"
+
+  - name: "test-integration"
+    image: "alpine:latest"
+    needs: ["build"]
+    run: |
+      echo "Running integration tests..." > integration-test.log
+      echo "Integration results" > output/reports/integration-tests.xml
+      echo "Integration tests complete" >> integration-test.log
+    artifacts:
+      paths:
+        - "output/reports/integration-tests.xml"
+        - "integration-test.log"
+      name: "integration-test-results"
+
+  - name: "deploy-staging"
+    image: "alpine:latest"
+    needs: ["test-unit", "test-integration"]
+    run: |
+      echo "Deploying to staging..." > deploy-staging.log
+      echo "Deployment successful" >> deploy-staging.log
+    artifacts:
+      paths:
+        - "deploy-staging.log"
+      name: "staging-deployment"
+
+  - name: "deploy-production"
+    image: "alpine:latest"
+    needs: ["deploy-staging"]
+    run: |
+      echo "Deploying to production..." > deploy-prod.log
+      echo "Production deployment successful" >> deploy-prod.log
+    artifacts:
+      paths:
+        - "deploy-prod.log"
+      name: "production-deployment"
