@@ -1,12 +1,72 @@
-name: "Simple Artifact Test"
+name: "DAG Pipeline with Artifacts"
+description: "Example DAG pipeline that demonstrates artifact saving"
+
 steps:
-  - name: "Create Build Artifact"
+  - name: "setup"
     image: "alpine:latest"
     run: |
-      echo "Creating a build directory and a sample file..."
-      mkdir ./build
-      echo "This is a test artifact." > ./build/hello.txt
-      echo "Artifact created."
+      echo "Setting up environment..." > setup.log
+      mkdir -p output/reports
+      echo "Setup complete" >> setup.log
+
+  - name: "build"
+    image: "alpine:latest"
+    needs: ["setup"]
+    run: |
+      echo "Building application..." > build.log
+      echo "Build artifacts created" > output/app.tar.gz
+      echo "Build complete" >> build.log
     artifacts:
-      - name: "output-files"
-        path: "./build"
+      paths:
+        - "output/"
+        - "build.log"
+      name: "build-artifacts"
+
+  - name: "test-unit"
+    image: "alpine:latest"
+    needs: ["build"]
+    run: |
+      echo "Running unit tests..." > unit-test.log
+      echo "Test results" > output/reports/unit-tests.xml
+      echo "Coverage data" > output/reports/coverage.xml
+      echo "Unit tests complete" >> unit-test.log
+    artifacts:
+      paths:
+        - "output/reports/"
+        - "unit-test.log"
+      name: "unit-test-results"
+
+  - name: "test-integration"
+    image: "alpine:latest"
+    needs: ["build"]
+    run: |
+      echo "Running integration tests..." > integration-test.log
+      echo "Integration results" > output/reports/integration-tests.xml
+      echo "Integration tests complete" >> integration-test.log
+    artifacts:
+      paths:
+        - "output/reports/integration-tests.xml"
+        - "integration-test.log"
+      name: "integration-test-results"
+
+  - name: "deploy-staging"
+    image: "alpine:latest"
+    needs: ["test-unit", "test-integration"]
+    run: |
+      echo "Deploying to staging..." > deploy-staging.log
+      echo "Deployment successful" >> deploy-staging.log
+    artifacts:
+      paths:
+        - "deploy-staging.log"
+      name: "staging-deployment"
+
+  - name: "deploy-production"
+    image: "alpine:latest"
+    needs: ["deploy-staging"]
+    run: |
+      echo "Deploying to production..." > deploy-prod.log
+      echo "Production deployment successful" >> deploy-prod.log
+    artifacts:
+      paths:
+        - "deploy-prod.log"
+      name: "production-deployment"
