@@ -7,7 +7,42 @@ steps:
   - name: "A - Create Log Artifact"
     image: "alpine:latest"
     run: |
-      echo "Creating a log file for this run..."
+      echo "Creating a log file for this run..."# .zipline/pipeline.yml
+
+name: "Simple Deployment with a Secret"
+description: "A pipeline that uses a secret to deploy a single file."
+
+steps:
+  - name: "A - Prepare for Deployment"
+    image: "alpine:latest"
+    run: |
+      echo "Preparing index.js for deployment..."
+      # This step just verifies the file exists
+      ls index.js
+      echo "Preparation complete."
+
+  - name: "B - Deploy File"
+    needs:
+      - "A - Prepare for Deployment"
+    image: "alpine:latest"
+    # This 'secrets' key tells the runner to inject the DEPLOYMENT_KEY
+    secrets:
+      - "DEPLOYMENT_KEY"
+    run: |
+      echo "Authenticating with deployment service..."
+      # The secret is now available as an environment variable
+      if [ -z "$DEPLOYMENT_KEY" ]; then
+        echo "Error: DEPLOYMENT_KEY secret is not set."
+        exit 1
+      else
+        echo "Successfully authenticated with key."
+        # In a real scenario, you would use this key with a CLI tool
+        # to upload your file. Here, we'll just simulate it.
+        echo "Deploying index.js..."
+        sleep 5
+        echo "Deployment successful."
+      fi
+
       echo "Pipeline started at $(date)" > run.log
       echo "Log file created."
     artifacts:
@@ -36,4 +71,5 @@ steps:
       echo "Packaging final artifacts for deployment..."
       sleep 5
       echo "Packaging complete."
+
 
