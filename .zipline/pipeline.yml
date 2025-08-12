@@ -1,72 +1,55 @@
+# .zipline/pipeline.yml
+
 name: "DAG Pipeline with Artifacts"
-description: "Example DAG pipeline that demonstrates artifact saving"
+description: "A pipeline that uses dependencies and produces a build artifact."
 
 steps:
-  - name: "setup"
+  - name: "A - Setup Environment"
     image: "alpine:latest"
     run: |
-      echo "Setting up environment..." > setup.log
-      mkdir -p output/reports
-      echo "Setup complete" >> setup.log
+      echo "Setting up build environment..."
+      sleep 5
+      echo "Environment ready."
 
-  - name: "build"
+  - name: "B - Lint Codebase"
     image: "alpine:latest"
-    needs: ["setup"]
     run: |
-      echo "Building application..." > build.log
-      echo "Build artifacts created" > output/app.tar.gz
-      echo "Build complete" >> build.log
-    artifacts:
-      paths:
-        - "output/"
-        - "build.log"
-      name: "build-artifacts"
+      echo "Running linters..."
+      sleep 8
+      echo "Linting passed."
 
-  - name: "test-unit"
+  - name: "C - Run Security Scan"
     image: "alpine:latest"
-    needs: ["build"]
     run: |
-      echo "Running unit tests..." > unit-test.log
-      echo "Test results" > output/reports/unit-tests.xml
-      echo "Coverage data" > output/reports/coverage.xml
-      echo "Unit tests complete" >> unit-test.log
-    artifacts:
-      paths:
-        - "output/reports/"
-        - "unit-test.log"
-      name: "unit-test-results"
+      echo "Scanning for vulnerabilities..."
+      sleep 12
+      echo "No critical vulnerabilities found."
 
-  - name: "test-integration"
+  - name: "D - Build Application"
+    needs:
+      - "A - Setup Environment"
+      - "B - Lint Codebase"
+      - "C - Run Security Scan"
     image: "alpine:latest"
-    needs: ["build"]
     run: |
-      echo "Running integration tests..." > integration-test.log
-      echo "Integration results" > output/reports/integration-tests.xml
-      echo "Integration tests complete" >> integration-test.log
+      echo "All checks passed. Starting application build..."
+      # Create a fake build output directory for demonstration
+      mkdir -p ./dist
+      echo "<html>Hello, World!</html>" > ./dist/index.html
+      echo "{ \"version\": \"1.0.0\" }" > ./dist/version.json
+      echo "Application built successfully."
+    
+    # --- THIS SECTION DEFINES THE ARTIFACT ---
     artifacts:
-      paths:
-        - "output/reports/integration-tests.xml"
-        - "integration-test.log"
-      name: "integration-test-results"
+      - name: "website-build" # The name for the downloadable file
+        path: "./dist"       # The path inside the container to save
 
-  - name: "deploy-staging"
+  - name: "E - Deploy to Staging"
+    needs:
+      - "D - Build Application"
     image: "alpine:latest"
-    needs: ["test-unit", "test-integration"]
     run: |
-      echo "Deploying to staging..." > deploy-staging.log
-      echo "Deployment successful" >> deploy-staging.log
-    artifacts:
-      paths:
-        - "deploy-staging.log"
-      name: "staging-deployment"
-
-  - name: "deploy-production"
-    image: "alpine:latest"
-    needs: ["deploy-staging"]
-    run: |
-      echo "Deploying to production..." > deploy-prod.log
-      echo "Production deployment successful" >> deploy-prod.log
-    artifacts:
-      paths:
-        - "deploy-prod.log"
-      name: "production-deployment"
+      echo "Deploying build artifacts to staging..."
+      # In a real scenario, this step would download and use the artifact.
+      sleep 10
+      echo "Deployment to staging complete."
