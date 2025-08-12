@@ -27,6 +27,9 @@ steps:
         exit 1
       else
         echo "Successfully authenticated with key."
+        # WARNING: Printing secrets to the log is a security risk.
+        # This is for debugging purposes only.
+        echo "DEBUG: The deployment key is: $DEPLOYMENT_KEY"
         # In a real scenario, you would use this key with a CLI tool
         # to upload your file. Here, we'll just simulate it.
         echo "Deploying index.js..."
