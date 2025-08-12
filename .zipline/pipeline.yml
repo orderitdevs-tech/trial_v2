@@ -1,38 +1,34 @@
 # .zipline/pipeline.yml
 
-name: "Simple Deployment with a Secret"
-description: "A pipeline that uses a secret to deploy a single file."
+name: "Secret Value Check"
+description: "A pipeline that checks the value of a specific secret."
 
 steps:
-  - name: "A - Prepare for Deployment"
+  - name: "A - Prepare Environment"
     image: "alpine:latest"
     run: |
-      echo "Preparing index.js for deployment..."
+      echo "Preparing environment..."
       # This step just verifies the file exists
       ls index.js
       echo "Preparation complete."
 
-  - name: "B - Deploy File"
+  - name: "B - Check Secret Value"
     needs:
-      - "A - Prepare for Deployment"
+      - "A - Prepare Environment"
     image: "alpine:latest"
-    # This 'secrets' key tells the runner to inject the DEPLOYMENT_KEY
+    # This 'secrets' key tells the runner to inject the GOKU secret
     secrets:
-      - "DEPLOYMENT_KEY"
+      - "GOKU"
     run: |
-      echo "Authenticating with deployment service..."
+      echo "Checking secret value..."
       # The secret is now available as an environment variable
-      if [ -z "$DEPLOYMENT_KEY" ]; then
-        echo "Error: DEPLOYMENT_KEY secret is not set."
+      if [ -z "$GOKU" ]; then
+        echo "Error: GOKU secret is not set."
         exit 1
+      elif [ "$GOKU" = "goku" ]; then
+        echo "OK"
+        echo "Secret value is correct."
       else
-        echo "Successfully authenticated with key."
-        # WARNING: Printing secrets to the log is a security risk.
-        # This is for debugging purposes only.
-        echo "DEBUG: The deployment key is: $DEPLOYMENT_KEY"
-        # In a real scenario, you would use this key with a CLI tool
-        # to upload your file. Here, we'll just simulate it.
-        echo "Deploying index.js..."
-        sleep 5
-        echo "Deployment successful."
+        echo "Secret GOKU does not have the expected value."
+        exit 1
       fi
