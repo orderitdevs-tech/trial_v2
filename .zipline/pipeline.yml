@@ -1,14 +1,5 @@
 # .zipline/pipeline.yml
 
-name: "Simple Build with Artifacts"
-description: "A simple pipeline that creates a build directory and saves it as an artifact."
-
-steps:
-  - name: "A - Create Log Artifact"
-    image: "alpine:latest"
-    run: |
-      echo "Creating a log file for this run..."# .zipline/pipeline.yml
-
 name: "Simple Deployment with a Secret"
 description: "A pipeline that uses a secret to deploy a single file."
 
@@ -42,34 +33,3 @@ steps:
         sleep 5
         echo "Deployment successful."
       fi
-
-      echo "Pipeline started at $(date)" > run.log
-      echo "Log file created."
-    artifacts:
-      name: "run-log"
-      paths:
-        - "./run.log"
-
-  - name: "B - Create Build Directory"
-    image: "alpine:latest"
-    run: |
-      echo "Creating build directory from index.js..."
-      mkdir ./dist
-      cp index.js ./dist/app.js
-      echo "Build directory created."
-    artifacts:
-      name: "application-build"
-      paths:
-        - "./dist"
-
-  - name: "C - Package for Deployment"
-    needs:
-      - "A - Create Log Artifact"
-      - "B - Create Build Directory"
-    image: "alpine:latest"
-    run: |
-      echo "Packaging final artifacts for deployment..."
-      sleep 5
-      echo "Packaging complete."
-
-
