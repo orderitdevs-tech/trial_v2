@@ -10,3 +10,25 @@ steps:
     artifacts:
       - name: "output-files"
         path: "./build"
+
+  - name: "D - Build Application"
+    needs:
+      - "A - Setup Environment"
+      - "B - Lint Codebase"
+      - "C - Run Security Scan"
+    image: "alpine:latest"
+    run: |
+      echo "All checks passed. Starting application build..."
+      # Create a fake build output directory for demonstration
+      mkdir -p ./dist
+      echo "<html>Hello, World!</html>" > ./dist/index.html
+      echo "{ \"version\": \"1.0.0\" }" > ./dist/version.json
+      echo "Application built successfully."
+    
+    # --- ADD THIS ARTIFACTS SECTION ---
+    artifacts:
+      - name: "website-build" # The name for the downloadable file
+        path: "./dist"       # The path inside the container to save
+
+  # ... other steps
+
