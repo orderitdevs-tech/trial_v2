@@ -1,69 +1,99 @@
 # .zipline/pipeline.yml
 
-name: "DAG Success Test"
-description: "A pipeline with parallel steps and dependencies to test the orchestrator."
+name: "Complex Software Delivery Pipeline"
+description: "A complex DAG with multiple parallel stages to test advanced orchestration."
 
 steps:
-  - name: "A - Run Backend Unit Tests"
+  # --- Stage 1: Initial Setup (Run in Parallel) ---
+  - name: "A - Setup Environment"
     image: "alpine:latest"
     run: |
-      echo "Starting backend unit tests..."
+      echo "Setting up build environment and installing dependencies..."
       sleep 10
-      echo "Backend unit tests passed."
+      echo "Environment ready."
 
-  - name: "B - Run Frontend Unit Tests"
+  - name: "B - Lint Codebase"
     image: "alpine:latest"
     run: |
-      echo "Starting frontend unit tests..."
-      sleep 10
-      echo "Frontend unit tests passed."
-
-  - name: "C - Lint Backend Code"
-    image: "alpine:latest"
-    run: |
-      echo "Linting backend code..."
-      sleep 5
-      echo "Backend linting complete."
-
-  - name: "D - Build Application"
-    # This is the "fan-in" step. It must wait for all three initial steps.
-    needs:
-      - "A - Run Backend Unit Tests"
-      - "B - Run Frontend Unit Tests"
-      - "C - Lint Backend Code"
-    image: "alpine:latest"
-    run: |
-      echo "All initial tests and linting passed. Starting application build..."
+      echo "Running linters on the entire codebase..."
       sleep 15
-      echo "Application build successful."
+      echo "Linting passed."
 
-  - name: "E - Deploy to Staging"
-    # This step depends only on the build.
-    needs:
-      - "D - Build Application"
+  - name: "C - Run Security Scan"
     image: "alpine:latest"
     run: |
-      echo "Deploying application to staging environment..."
-      sleep 10
-      echo "Deployment to staging complete."
-
-  - name: "F - Run End-to-End Tests"
-    # This step also depends only on the build and can run in parallel with staging deployment.
-    needs:
-      - "D - Build Application"
-    image: "alpine:latest"
-    run: |
-      echo "Starting end-to-end tests against the built application..."
+      echo "Scanning for security vulnerabilities..."
       sleep 20
-      echo "End-to-end tests passed."
+      echo "No critical vulnerabilities found."
 
-  - name: "G - Notify Team"
-    # This is the final step. It must wait for both deployment and E2E tests.
+  # --- Stage 2: Build (Waits for all setup tasks) ---
+  - name: "D - Build Application"
     needs:
-      - "E - Deploy to Staging"
-      - "F - Run End-to-End Tests"
+      - "A - Setup Environment"
+      - "B - Lint Codebase"
+      - "C - Run Security Scan"
     image: "alpine:latest"
     run: |
-      echo "Deployment and E2E tests successful. Sending notification to team."
-      sleep 2
-      echo "Notification sent."
+      echo "All checks passed. Starting application build..."
+      sleep 25
+      echo "Application built successfully."
+
+  # --- Stage 3: Parallel Testing (Waits for build) ---
+  - name: "E - Run Backend Integration Tests"
+    needs:
+      - "D - Build Application"
+    image: "alpine:latest"
+    run: |
+      echo "Running backend-specific integration tests..."
+      sleep 30
+      echo "Backend tests passed."
+
+  - name: "F - Run Frontend Integration Tests"
+    needs:
+      - "D - Build Application"
+    image: "alpine:latest"
+    run: |
+      echo "Running frontend-specific integration tests..."
+      sleep 30
+      echo "Frontend tests passed."
+
+  # --- Stage 4: Package (Waits for all tests) ---
+  - name: "G - Package Artifacts"
+    needs:
+      - "E - Run Backend Integration Tests"
+      - "F - Run Frontend Integration Tests"
+    image: "alpine:latest"
+    run: |
+      echo "All tests passed. Packaging application into a Docker image..."
+      sleep 20
+      echo "Artifacts packaged."
+
+  # --- Stage 5: Staging Deployment (Waits for packaging) ---
+  - name: "H - Deploy to Staging"
+    needs:
+      - "G - Package Artifacts"
+    image: "alpine:latest"
+    run: |
+      echo "Deploying to the staging environment..."
+      sleep 15
+      echo "Deployment to staging successful."
+
+  # --- Stage 6: Staging Verification (Waits for staging deployment) ---
+  - name: "I - Run Staging Smoke Tests"
+    needs:
+      - "H - Deploy to Staging"
+    image: "alpine:latest"
+    run: |
+      echo "Running smoke tests against the staging environment..."
+      sleep 10
+      echo "Staging environment is healthy."
+
+  # --- Stage 7: Production Deployment (Final step) ---
+  - name: "J - Deploy to Production"
+    needs:
+      - "I - Run Staging Smoke Tests"
+    image: "alpine:latest"
+    run: |
+      echo "Staging tests passed. Promoting build to production..."
+      sleep 10
+      echo "🚀 Successfully deployed to production!"
