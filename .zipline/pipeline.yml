@@ -9,6 +9,7 @@ on:
   push:
     branches:
       - main
+      - dev
 
 steps:
   - name: "Build Application"
@@ -40,3 +41,4 @@ steps:
         sleep 10
         echo "🚀 Deployment to production complete."
       fi
+
