@@ -30,10 +30,10 @@ steps:
       - "Build Application"
     image: "alpine:latest"
     secrets:
-      - "PRODUCTION_DEPLOY_KEY"
+      - "DEPLOYMENT_KEY"
     run: |
       echo "Deploying to production server..."
-      if [ -z "$PRODUCTION_DEPLOY_KEY" ]; then
+      if [ -z "$DEPLOYMENT_KEY" ]; then
         echo "Error: Production deployment key is not set."
         exit 1
       else
@@ -41,4 +41,5 @@ steps:
         sleep 10
         echo "🚀 Deployment to production complete."
       fi
+
 
