@@ -65,7 +65,7 @@ steps:
       - "PRODUCTION_DEPLOY_KEY"
     run: |
       echo "All tests passed. Deploying to production..."
-      if [ -z "$PRODUCTION_DEPLOY_KEY" ]; then
+      if [ -z "$DEPLOYMENT_KEY" ]; then
         echo "Error: Production deployment key is not set."
         exit 1
       else
@@ -73,3 +73,4 @@ steps:
         sleep 10
         echo "🚀 Successfully deployed to production!"
       fi
+
