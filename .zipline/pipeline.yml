@@ -1,76 +1,109 @@
 # .zipline/pipeline.yml
 
-name: "Production Release Pipeline"
-description: "A complex DAG pipeline that builds, tests, and deploys the application, producing a build artifact. Runs only on main and release branches."
-
-# This section makes the pipeline branch-specific
-on:
-  push:
-    branches:
-      - main
-      - 'release/*' # Supports wildcards
-      - dev
+name: "Complex Software Delivery Pipeline"
+description: "A complex DAG with multiple parallel stages to test advanced orchestration."
 
 steps:
-  # --- Stage 1: Initial Checks (Run in Parallel) ---
-  - name: "A - Lint Codebase"
+  # --- Stage 1: Initial Setup (Run in Parallel) ---
+  - name: "A - Setup Environment"
     image: "alpine:latest"
     run: |
-      echo "Running linters..."
+      echo "Setting up build environment and installing dependencies..."
       sleep 10
+      echo "Environment ready."
+
+  - name: "B - Lint Codebase"
+    image: "alpine:latest"
+    run: |
+      echo "Running linters on the entire codebase..."
+      sleep 15
       echo "Linting passed."
 
-  - name: "B - Run Security Scan"
+  - name: "C - Run Security Scan"
     image: "alpine:latest"
     run: |
       echo "Scanning for security vulnerabilities..."
-      sleep 15
+      sleep 20
       echo "No critical vulnerabilities found."
 
-  # --- Stage 2: Build Application (Waits for checks, produces artifact) ---
-  - name: "C - Build Application"
+  # --- Stage 2: Build (Waits for all setup tasks) ---
+  - name: "D - Build Application"
     needs:
-      - "A - Lint Codebase"
-      - "B - Run Security Scan"
+      - "A - Setup Environment"
+      - "B - Lint Codebase"
+      - "C - Run Security Scan"
     image: "alpine:latest"
     run: |
       echo "All checks passed. Starting application build..."
-      # Create a fake build output directory
-      mkdir -p ./build/assets
-      echo "<html>Hello from the build!</html>" > ./build/index.html
-      echo "main.js content" > ./build/assets/main.js
+      # Create a fake build directory to be used later
+      mkdir -p ./build
+      echo "Build output" > ./build/app.bin
+      sleep 25
       echo "Application built successfully."
-    artifacts:
-      name: "production-build"
-      paths:
-        - "./build"
 
-  # --- Stage 3: Test Build (Waits for build) ---
-  - name: "D - Run Integration Tests"
+  # --- Stage 3: Parallel Testing (Waits for build) ---
+  - name: "E - Run Backend Integration Tests"
     needs:
-      - "C - Build Application"
+      - "D - Build Application"
     image: "alpine:latest"
     run: |
-      echo "Running integration tests on the built application..."
-      # In a real scenario, this step would download and use the artifact.
+      echo "Running backend-specific integration tests..."
+      sleep 30
+      echo "Backend tests passed."
+
+  - name: "F - Run Frontend Integration Tests"
+    needs:
+      - "D - Build Application"
+    image: "alpine:latest"
+    run: |
+      echo "Running frontend-specific integration tests..."
+      sleep 30
+      echo "Frontend tests passed."
+
+  # --- Stage 4: Package (Waits for all tests, produces artifact) ---
+  - name: "G - Package Artifacts"
+    needs:
+      - "E - Run Backend Integration Tests"
+      - "F - Run Frontend Integration Tests"
+    image: "alpine:latest"
+    run: |
+      echo "All tests passed. Packaging application..."
+      # This simulates creating a final package from the build output
+      mv ./build ./package
+      echo "v1.0.0" > ./package/version.txt
       sleep 20
-      echo "Integration tests passed."
+      echo "Artifacts packaged."
+    artifacts:
+      name: "application-package"
+      paths:
+        - "./package"
 
-  # --- Stage 4: Deploy (Final step) ---
-  - name: "E - Deploy to Production"
+  # --- Stage 5: Staging Deployment (Waits for packaging) ---
+  - name: "H - Deploy to Staging"
     needs:
-      - "D - Run Integration Tests"
+      - "G - Package Artifacts"
     image: "alpine:latest"
-    secrets:
-      - "PRODUCTION_DEPLOY_KEY"
     run: |
-      echo "All tests passed. Deploying to production..."
-      if [ -z "$DEPLOYMENT_KEY" ]; then
-        echo "Error: Production deployment key is not set."
-        exit 1
-      else
-        echo "Authentication successful. Deployment starting..."
-        sleep 10
-        echo "🚀 Successfully deployed to production!"
-      fi
+      echo "Deploying to the staging environment..."
+      sleep 15
+      echo "Deployment to staging successful."
 
+  # --- Stage 6: Staging Verification (Waits for staging deployment) ---
+  - name: "I - Run Staging Smoke Tests"
+    needs:
+      - "H - Deploy to Staging"
+    image: "alpine:latest"
+    run: |
+      echo "Running smoke tests against the staging environment..."
+      sleep 10
+      echo "Staging environment is healthy."
+
+  # --- Stage 7: Production Deployment (Final step) ---
+  - name: "J - Deploy to Production"
+    needs:
+      - "I - Run Staging Smoke Tests"
+    image: "alpine:latest"
+    run: |
+      echo "Staging tests passed. Promoting build to production..."
+      sleep 10
+      echo "🚀 Successfully deployed to production!"
