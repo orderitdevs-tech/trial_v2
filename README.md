@@ -91,6 +91,29 @@ Zipline is built on a microservices architecture to ensure scalability and separ
 
 ---
 
+## 📊 API Endpoints
+
+The backend exposes a comprehensive REST API for managing the entire CI/CD workflow.
+
+| Feature         | Endpoint                               | Method | Description                               |
+| --------------- | -------------------------------------- | ------ | ----------------------------------------- |
+| **Auth** | `/auth/github`                         | `GET`  | Initiates GitHub OAuth flow.              |
+|                 | `/auth/github/callback`                | `GET`  | Handles the OAuth callback.               |
+| **Repositories**| `/repositories`                        | `GET`  | Lists user's connected repositories.      |
+|                 | `/repositories/setup-webhook`          | `POST` | Enables a repository for Zipline.         |
+| **Pipelines** | `/runs/:runId`                         | `GET`  | Gets details for a specific pipeline run. |
+|                 | `/runs/:runId/plan`                    | `GET`  | Gets the DAG structure for visualization. |
+|                 | `/runs/:runId/cancel`                  | `POST` | Cancels a running pipeline.               |
+|                 | `/runs/:runId/rerun`                   | `POST` | Re-runs a completed pipeline.             |
+| **Artifacts** | `/artifacts/:runId`                    | `GET`  | Lists artifacts for a pipeline run.       |
+|                 | `/artifacts/:artifactId/download`      | `GET`  | Generates a download link for an artifact.|
+| **Secrets** | `/secrets/:repo`                       | `GET`  | Lists secret keys for a repository.       |
+|                 | `/secrets/:repo`                       | `POST` | Creates or updates a secret.              |
+|                 | `/secrets/:repo/:key`                  | `DELETE`| Deletes a secret.                         |
+| **Health** | `/health`                              | `GET`  | Health check for the service.             |
+
+---
+
 ## 🚀 Getting Started
 
 ### Prerequisites
