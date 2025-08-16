@@ -113,5 +113,6 @@ steps:
   - name: "run index.js"
     needs:
       - "J - Deploy to Production"
-    image: "alpine:latest"
+    image: "node:alpine"
     run: node index.js
+
