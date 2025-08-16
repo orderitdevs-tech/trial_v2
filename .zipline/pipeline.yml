@@ -25,6 +25,10 @@ steps:
       echo "Scanning for security vulnerabilities..."
       sleep 20
       echo "No critical vulnerabilities found."
+      
+  - name: "run index.js"
+    image: "alpine:latest"
+    run: node index.js
 
   # --- Stage 2: Build (Waits for all setup tasks) ---
   - name: "D - Build Application"
@@ -107,3 +111,4 @@ steps:
       echo "Staging tests passed. Promoting build to production..."
       sleep 10
       echo "🚀 Successfully deployed to production!"
+
