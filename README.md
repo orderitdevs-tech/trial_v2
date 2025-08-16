@@ -26,6 +26,22 @@
 
 ---
 
+## 📸 Screenshots
+
+**Live DAG Visualization:**
+**
+
+**Real-time Log Output:**
+**
+
+**Artifacts Download Section:**
+**
+
+**Secrets Management UI:**
+**
+
+---
+
 ## ✨ Core Features
 
 ### Orchestration & Execution
