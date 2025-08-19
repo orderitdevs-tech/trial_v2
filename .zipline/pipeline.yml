@@ -7,7 +7,7 @@ description: "A full CI/CD pipeline that builds, tests, and deploys a web applic
 on:
   push:
     branches:
-      - main
+      - dev
 
 steps:
   # --- Stage 1: Initial Checks (Run in Parallel) ---
@@ -61,3 +61,4 @@ steps:
         sleep 10
         echo "🚀 Successfully deployed to production!"
       fi
+
