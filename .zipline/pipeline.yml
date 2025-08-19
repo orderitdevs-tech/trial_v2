@@ -1,35 +1,63 @@
 # .zipline/pipeline.yml
 
-name: "Simple DAG with Artifact"
-description: "A simple pipeline that validates a file, creates a build artifact, and finalizes."
+name: "Website Build and Deploy Pipeline"
+description: "A full CI/CD pipeline that builds, tests, and deploys a web application."
+
+# This pipeline will only run on pushes to the 'main' branch.
+on:
+  push:
+    branches:
+      - main
 
 steps:
-  - name: "A - Validate File"
-    image: "alpine:latest"
+  # --- Stage 1: Initial Checks (Run in Parallel) ---
+  - name: "A - Lint Code"
+    image: "node:18-alpine"
     run: |
-      echo "Checking for index.js..."
-      ls index.js
-      echo "File found."
+      echo "Running linters..."
+      # In a real project, this would be: npm install && npm run lint
+      sleep 10
+      echo "Linting complete."
 
-  - name: "B - Create Build Artifact"
-    needs:
-      - "A - Validate File"
-    image: "alpine:latest"
+  - name: "B - Run Unit Tests"
+    image: "node:18-alpine"
     run: |
-      echo "Creating build directory..."
-      mkdir ./dist
-      cp index.js ./dist/app.js
-      echo "Build directory created."
+      echo "Running unit tests..."
+      # In a real project, this would be: npm install && npm test
+      sleep 15
+      echo "Unit tests passed."
+
+  # --- Stage 2: Build (Waits for checks, produces artifact) ---
+  - name: "C - Build Application"
+    needs:
+      - "A - Lint Code"
+      - "B - Run Unit Tests"
+    image: "node:18-alpine"
+    run: |
+      echo "All checks passed. Building application..."
+      # Simulate creating a build output directory
+      mkdir -p ./dist
+      echo "<html><body><h1>Hello, Zipline!</h1></body></html>" > ./dist/index.html
+      echo "Application built successfully."
     artifacts:
-      name: "application-package"
+      name: "website-build"
       paths:
         - "./dist"
 
-  - name: "C - Finalize"
+  # --- Stage 3: Deploy (Final step) ---
+  - name: "D - Deploy to Production"
     needs:
-      - "B - Create Build Artifact"
+      - "C - Build Application"
     image: "alpine:latest"
+    secrets:
+      - "DEPLOYMENT_TOKEN"
     run: |
-      echo "Packaging and finalization complete."
-      sleep 5
-      echo "Pipeline finished."
+      echo "Deploying to production server..."
+      if [ -z "$DEPLOYMENT_TOKEN" ]; then
+        echo "Error: DEPLOYMENT_TOKEN secret is not set."
+        exit 1
+      else
+        echo "Authentication successful. Deployment starting..."
+        sleep 10
+        echo "🚀 Successfully deployed to production!"
+      fi
