@@ -53,7 +53,7 @@ steps:
       - "DEPLOYMENT_TOKEN"
     run: |
       echo "Deploying to production server..."
-      if [ -z "$DEPLOYMENT_TOKEN" ]; then
+      if [ -z "$DEPLOYMENT_KEY" ]; then
         echo "Error: DEPLOYMENT_TOKEN secret is not set."
         exit 1
       else
@@ -61,4 +61,5 @@ steps:
         sleep 10
         echo "🚀 Successfully deployed to production!"
       fi
+
 
