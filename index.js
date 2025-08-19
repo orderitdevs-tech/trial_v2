@@ -1,2 +1,2 @@
 console.log("Hello, World!");
-console.log("This is a simple Node.js application only repoistory");
+console.log("This is a simple Node.js application only repoistory db");
